@@ -226,9 +226,14 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
   beforeDestroy() {
     GlobalErrorsSubject.get_instance().unsubscribe(this);
   }
-
+  
   @handle_global_errors_async
   async login() {
+      this.$router.push('/web/login')
+    }
+
+  @handle_global_errors_async
+  async login1() {
     let auth_token = get_cookie('token');
     if (auth_token !== null) {
       HttpClient.get_instance().authenticate(auth_token);
@@ -248,6 +253,7 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
         delete_all_cookies();
       }
       else {
+        // TODO JWT auth logic
         let oauth_url = e.headers['www-authenticate'].split('Redirect_to: ')[1];
         window.location.assign(oauth_url);
       }
