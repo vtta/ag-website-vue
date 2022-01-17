@@ -66,12 +66,12 @@
 
           <div v-if="globals.current_user === null"
                id="login-button-wrapper">
-            <button @click="login"
-                    type="button"
-                    data-testid="login_button"
-                    class="blue-button">
-              Sign In
-            </button>
+            <!-- <button @click="login" -->
+            <!--         type="button" -->
+            <!--         data-testid="login_button" -->
+            <!--         class="blue-button"> -->
+            <!--   Sign In -->
+            <!-- </button> -->
           </div>
           <div v-else class="current-user-dropdown">
             <div class="dropdown-header">
@@ -100,9 +100,30 @@
       </div>
       <div id="welcome" v-if="globals.current_user === null">
         <div class="welcome-text">Welcome!</div>
-        <button type="button" ref="welcome_login_button" class="blue-button" @click="login">
-          Sign In
-        </button>
+        <form>
+          <div class="form-field-wrapper">
+            <label class="label"> Username </label>
+            <ValidatedInput ref="username_input"
+                      v-model="globals.username"
+                      input_style="width: 100%;
+                                    max-width: 500px;"
+                      :validators="[is_not_empty]">
+            </ValidatedInput>
+          </div>
+          <div class="form-field-wrapper">
+            <label class="label"> Password </label>
+            <ValidatedInput ref="password_input"
+                      v-model="globals.password"
+                      input_style="width: 100%;
+                                    max-width: 500px;"
+                      :validators="[]"
+                      type="password">
+            </ValidatedInput>
+          </div>
+          <button type="button" ref="welcome_login_button" class="blue-button" @click="login">
+            Sign In
+          </button>
+        </form>
       </div>
       <template v-else>
         <router-view></router-view>
@@ -124,12 +145,25 @@ import {
 } from 'ag-client-typescript';
 
 import APIErrors from '@/components/api_errors.vue';
+import ValidatedInput from '@/components/validated_input.vue';
 import { GlobalErrorsObserver, GlobalErrorsSubject, handle_global_errors_async } from '@/error_handling';
 
-import { delete_all_cookies, get_cookie } from './cookie';
+import { delete_all_cookies, get_cookie, set_cookie } from './cookie';
 import UIDemos from './demos/ui_demos.vue';
 import { BeforeDestroy, Created } from './lifecycle';
 import { safe_assign } from './utils';
+
+import {
+  is_integer,
+  is_non_negative,
+  is_not_empty,
+  is_number,
+  make_min_value_validator,
+  string_to_num
+} from '@/validators';
+
+import axios, { AxiosStatic } from 'axios';
+
 
 
 /* IMPORTANT! How to use the provided globals:
@@ -152,6 +186,9 @@ export class GlobalData {
     is_student: false,
     is_handgrader: false,
   });
+
+  username: string = '';
+  password: string = '';
 
   async set_current_course(course: Course | null) {
     if (course === null) {
@@ -187,6 +224,7 @@ export class GlobalData {
 @Component({
   components: {
     APIErrors,
+    ValidatedInput,
   }
 })
 export default class App extends Vue implements GlobalErrorsObserver, Created, BeforeDestroy {
@@ -204,6 +242,8 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
   d_global_error_count = 0;
 
   d_loading = true;
+
+  readonly is_not_empty = is_not_empty;
 
   @handle_global_errors_async
   async created() {
@@ -229,11 +269,6 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
   
   @handle_global_errors_async
   async login() {
-      this.$router.push('/web/login')
-    }
-
-  @handle_global_errors_async
-  async login1() {
     let auth_token = get_cookie('token');
     if (auth_token !== null) {
       HttpClient.get_instance().authenticate(auth_token);
@@ -253,10 +288,18 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
         delete_all_cookies();
       }
       else {
+        // let oauth_url = e.headers['www-authenticate'].split('Redirect_to: ')[1];
+        // window.location.assign(oauth_url);
         // TODO JWT auth logic
-        let oauth_url = e.headers['www-authenticate'].split('Redirect_to: ')[1];
-        window.location.assign(oauth_url);
+        axios.post('api/token/', {username: this.globals.username, password: this.globals.password})
+          .then(resp => {
+            const expires = new Date();
+            expires.setTime(Date.parse(resp.headers.date) + 5*60*1000);
+              set_cookie('token', resp.headers.access, expires); 
+            });
+        this.$router.push('/');
       }
+
     }
   }
 
