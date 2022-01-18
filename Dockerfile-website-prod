@@ -19,6 +19,7 @@ COPY .browserslistrc .
 COPY .postcssrc.js .
 COPY vue.config.js .
 COPY tsconfig.json .
+COPY ag-client-typescript ag-client-typescript
 
 RUN npm install
 

@@ -19,6 +19,7 @@ COPY .browserslistrc .
 COPY .postcssrc.js .
 COPY vue.config.js .
 COPY tsconfig.json .
+COPY ag-client-typescript ag-client-typescript
 
 # HACK: For some reason, npm install exits nonzero the first time,
 # even though the packages installed successfully. The second time,
