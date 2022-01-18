@@ -10,7 +10,7 @@ export function get_cookie(key: string) {
 }
 
 export function set_cookie(key: string, value: string, expire: Date) {
-  document.cookie = name + "=" + value + "; expires=" + expire.toUTCString()
+  document.cookie = key + "=" + value + "; expires=" + expire.toUTCString()
     + "; path=/; domain=" + location.hostname;
 }
 
