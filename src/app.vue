@@ -291,13 +291,17 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
         // let oauth_url = e.headers['www-authenticate'].split('Redirect_to: ')[1];
         // window.location.assign(oauth_url);
         // TODO JWT auth logic
-        axios.post('api/token/', {username: this.globals.username, password: this.globals.password})
+        this.globals.current_user = await HttpClient.get_instance()
+          .post<{ access: string, refresh: string }>('api/token/', { 
+            username: this.globals.username,
+            password: this.globals.password })
           .then(resp => {
             const expires = new Date();
             expires.setTime(Date.parse(resp.headers.date) + 5*60*1000);
-              set_cookie('token', resp.headers.access, expires); 
-            });
-        this.$router.push('/');
+            set_cookie('token', resp.data.access, expires);
+            return User.get_current();
+          });
+
       }
 
     }
