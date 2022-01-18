@@ -262,13 +262,31 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
   beforeDestroy() {
     GlobalErrorsSubject.get_instance().unsubscribe(this);
   }
+
+  async get_token(username: string, password: string) {
+    return HttpClient.get_instance()
+      .post<{ access: string, refresh: string }>('token/', { 
+        username: username, password: password 
+      })
+      .then(response => {
+        const expires = new Date();
+        expires.setTime(Date.parse(response.headers.date) + 5*60*1000);
+        let auth_token = response.data.access;
+        set_cookie('token', auth_token, expires);
+        return auth_token;
+      });
+  }
   
   @handle_global_errors_async
   async login() {
     let auth_token = get_cookie('token');
-    if (auth_token !== null) {
-      HttpClient.get_instance().authenticate(auth_token);
-    }
+    if (auth_token == null) {
+        // let oauth_url = e.headers['www-authenticate'].split('Redirect_to: ')[1];
+        // window.location.assign(oauth_url);
+        // obtain JWT token
+        auth_token = await this.get_token(this.globals.username, this.globals.password);
+    } 
+    HttpClient.get_instance().authenticate(auth_token);
 
     try {
       this.globals.current_user = await User.get_current();
@@ -283,23 +301,6 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
       if (auth_token !== null) {
         delete_all_cookies();
       }
-      else {
-        // let oauth_url = e.headers['www-authenticate'].split('Redirect_to: ')[1];
-        // window.location.assign(oauth_url);
-        // TODO JWT auth logic
-        this.globals.current_user = await HttpClient.get_instance()
-          .post<{ access: string, refresh: string }>('api/token/', { 
-            username: this.globals.username,
-            password: this.globals.password })
-          .then(resp => {
-            const expires = new Date();
-            expires.setTime(Date.parse(resp.headers.date) + 5*60*1000);
-            set_cookie('token', resp.data.access, expires);
-            return User.get_current();
-          });
-
-      }
-
     }
   }
 
