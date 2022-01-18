@@ -103,22 +103,18 @@
         <form>
           <div class="form-field-wrapper">
             <label class="label"> Username </label>
-            <ValidatedInput ref="username_input"
+            <input type="text" class="input" ref="username_input"
                       v-model="globals.username"
-                      input_style="width: 100%;
-                                    max-width: 500px;"
-                      :validators="[is_not_empty]">
-            </ValidatedInput>
+                      style="width: 100%;
+                                    max-width: 500px;" />
           </div>
           <div class="form-field-wrapper">
             <label class="label"> Password </label>
-            <ValidatedInput ref="password_input"
+            <input class="input" ref="password_input"
                       v-model="globals.password"
-                      input_style="width: 100%;
-                                    max-width: 500px;"
-                      :validators="[]"
-                      type="password">
-            </ValidatedInput>
+                      type="password"
+                      style="width: 100%;
+                                    max-width: 500px;" />
           </div>
           <button type="button" ref="welcome_login_button" class="blue-button" @click="login">
             Sign In
