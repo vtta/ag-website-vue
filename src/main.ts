@@ -11,7 +11,6 @@ import ProjectAdmin from '@/components/project_admin/project_admin.vue';
 import ProjectView from '@/components/project_view/project_view.vue';
 import SuperuserDashboard from '@/components/superuser_dashboard.vue';
 import UIDemos from '@/demos/ui_demos.vue';
-import LoginForm from '@/components/login_form.vue';
 
 import App from './app.vue';
 
@@ -27,7 +26,6 @@ const ROUTES = [
   { path: '/web/superusers', component: SuperuserDashboard },
   { path: '/__demos__', component: UIDemos },
   { path: '/web/__apitoken__', component: APITokenView },
-  { path: '/web/login', component: LoginForm }
 ];
 
 const ROUTER = new VueRouter({
