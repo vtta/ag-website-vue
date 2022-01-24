@@ -143,12 +143,6 @@ import {
 import APIErrors from '@/components/api_errors.vue';
 import ValidatedInput from '@/components/validated_input.vue';
 import { GlobalErrorsObserver, GlobalErrorsSubject, handle_global_errors_async } from '@/error_handling';
-
-import { delete_all_cookies, get_cookie, set_cookie } from './cookie';
-import UIDemos from './demos/ui_demos.vue';
-import { BeforeDestroy, Created } from './lifecycle';
-import { safe_assign } from './utils';
-
 import {
   is_integer,
   is_non_negative,
@@ -158,7 +152,10 @@ import {
   string_to_num
 } from '@/validators';
 
-import axios, { AxiosStatic } from 'axios';
+import { delete_all_cookies, get_cookie, set_cookie } from './cookie';
+import UIDemos from './demos/ui_demos.vue';
+import { BeforeDestroy, Created } from './lifecycle';
+import { safe_assign } from './utils';
 
 
 
@@ -263,29 +260,29 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
     GlobalErrorsSubject.get_instance().unsubscribe(this);
   }
 
-  async get_token(username: string, password: string) {
+  async get_token() {
     return HttpClient.get_instance()
-      .post<{ access: string, refresh: string }>('token/', { 
-        username: username, password: password 
+      .post<{ access: string, refresh: string }>('token/', {
+        username: this.globals.username, password: this.globals.password
       })
       .then(response => {
         const expires = new Date();
-        expires.setTime(Date.parse(response.headers.date) + 5*60*1000);
+        expires.setTime(Date.parse(response.headers.date) + 5 * 60 * 1000);
         let auth_token = response.data.access;
         set_cookie('token', auth_token, expires);
         return auth_token;
       });
   }
-  
+
   @handle_global_errors_async
   async login() {
     let auth_token = get_cookie('token');
-    if (auth_token == null) {
+    if (auth_token === null) {
         // let oauth_url = e.headers['www-authenticate'].split('Redirect_to: ')[1];
         // window.location.assign(oauth_url);
         // obtain JWT token
-        auth_token = await this.get_token(this.globals.username, this.globals.password);
-    } 
+        auth_token = await this.get_token();
+    }
     HttpClient.get_instance().authenticate(auth_token);
 
     try {
@@ -313,7 +310,6 @@ export default class App extends Vue implements GlobalErrorsObserver, Created, B
     (<APIErrors> this.$refs.global_errors).show_errors_from_response(error);
   }
 }
-
 </script>
 
 <style lang="scss" scoped>
